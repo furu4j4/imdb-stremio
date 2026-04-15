@@ -5,16 +5,14 @@ const cors = require('cors');
 const addonInterface = require('../addon.js');
 
 const app = express();
-app.use(cors()); // Helps Stremio talk to your server
+app.use(cors()); 
 
 const router = getRouter(addonInterface);
 
-// Use the SDK router for all paths
-app.use('/', router);
+// Root path redirect to configuration
+app.get('/', (req, res) => res.redirect('/configure'));
 
-// If someone hits the root "/", send them to the config page instead of a 404
-app.get('/', (req, res) => {
-    res.redirect('/configure');
-});
+// Use the SDK router
+app.use('/', router);
 
 module.exports = app;
