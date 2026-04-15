@@ -1,17 +1,15 @@
 const express = require('express');
 const { getRouter } = require('stremio-addon-sdk');
-const addonInterface = require('../addon.js'); // Simplified path for Vercel
+// Using a direct relative path is safer on Vercel than path.join(__dirname)
+const addonInterface = require('../addon.js');
 
 const app = express();
-
-// The SDK's getRouter handles /configure and /manifest.json automatically
 const router = getRouter(addonInterface);
 
-app.use('/', router);
+// Redirect root to configure page
+app.get('/', (req, res) => res.redirect('/configure'));
 
-// Explicitly handle the root redirect
-app.get('/', (req, res) => {
-    res.redirect('/configure');
-});
+// Use the SDK router for everything else
+app.use('/', router);
 
 module.exports = app;
