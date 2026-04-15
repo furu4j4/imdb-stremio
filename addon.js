@@ -9,21 +9,22 @@ builder.defineStreamHandler(async ({ id }) => {
     const guideData = await getParentsGuide(imdbId);
     
     if (guideData.length === 0) {
-        // This ensures something shows up even if no severe warnings are found
-        return { 
-            streams: [{
-                name: "IMDb Guide",
-                title: "ℹ️ No severe content advisories found.",
-                externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
-            }]
-        };
+        return { streams: [] }; // Don't show anything if scrape fails
     }
 
-    const streams = guideData.map(item => ({
-        name: "IMDb Guide",
-        title: `[${item.severity.toUpperCase()}] ${item.category}`,
-        externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
-    }));
+    const streams = guideData.map(item => {
+        // Add visual color indicators based on the text
+        let icon = "⚪"; 
+        if (item.severity.includes("Severe")) icon = "🔴";
+        else if (item.severity.includes("Moderate")) icon = "🟡";
+        else if (item.severity.includes("Mild")) icon = "🟢";
+
+        return {
+            name: "IMDb Guide",
+            title: `${icon} ${item.category}: ${item.severity}`,
+            externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
+        };
+    });
 
     return { streams };
 });
