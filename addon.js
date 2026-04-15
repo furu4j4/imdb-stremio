@@ -4,44 +4,15 @@ const manifest = require("./manifest");
 
 const builder = new addonBuilder(manifest);
 
-builder.defineStreamHandler(async ({ id }) => {
-    const imdbId = id.split(':')[0];
-    const { error, data } = await getParentsGuide(imdbId);
+// The 'req' object is where our apiKey lives now
+builder.defineStreamHandler(async (args) => {
+    const imdbId = args.id.split(':')[0];
     
-    if (error) {
-        return { 
-            streams: [{
-                name: "IMDb Guide",
-                title: `⚠️ ${error} (Blocked by IMDb)`,
-                externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
-            }]
-        };
-    }
-
-    if (data.length === 0) {
-        return { 
-            streams: [{
-                name: "IMDb Guide",
-                title: "ℹ️ No advisory data found on page.",
-                externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
-            }]
-        };
-    }
-
-    const streams = data.map(item => {
-        let icon = "⚪"; 
-        if (item.severity.includes("Severe")) icon = "🔴";
-        else if (item.severity.includes("Moderate")) icon = "🟡";
-        else if (item.severity.includes("Mild")) icon = "🟢";
-
-        return {
-            name: "IMDb Guide",
-            title: `${icon} ${item.category}: ${item.severity}`,
-            externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
-        };
-    });
-
-    return { streams };
+    // Check if the apiKey was provided in the URL
+    const apiKey = args.config ? args.config.apiKey : null; 
+    // Note: In custom Express setups, we might need to handle this via the 'args' or global state
+    // Since we're using a specific route, we'll assume the scraper will handle the key logic.
 });
 
+// To keep it simple with the SDK, let's modify the scraper to use the key from the manifest URL
 module.exports = builder.getInterface();
