@@ -6,41 +6,37 @@ async function getParentsGuide(imdbId) {
     try {
         const response = await axios.get(url, {
             headers: { 
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache',
-                'Referer': 'https://www.google.com/'
+                'Referer': 'https://www.google.com/',
+                'DNT': '1',
+                'Upgrade-Insecure-Requests': '1'
             },
-            timeout: 10000
+            timeout: 8000,
+            validateStatus: () => true // This allows us to see the error code instead of crashing
         });
 
-        // If IMDb returns something other than 200, it's a block
-        if (response.status !== 200) return [];
+        if (response.status !== 200) {
+            return { error: `IMDb Error ${response.status}`, data: [] };
+        }
 
         const $ = cheerio.load(response.data);
         const results = [];
 
-        // This matches the exact table rows from the image you sent
-        $('.ipc-metadata-list-item--metadata').each((i, el) => {
+        // This selector targets the list rows in your American Beauty screenshot
+        $('.ipc-metadata-list-item').each((i, el) => {
             const label = $(el).find('.ipc-metadata-list-item__label').text().trim();
             const severity = $(el).find('.ipc-metadata-list-item__content-container').text().trim();
 
-            if (label && severity) {
-                // Ensure we only grab valid categories
-                const validCategories = ["Sex & Nudity", "Violence & Gore", "Profanity", "Alcohol, Drugs & Smoking", "Frightening & Intense Scenes"];
-                if (validCategories.some(cat => label.includes(cat))) {
-                    results.push({ category: label, severity: severity });
-                }
+            if (label && severity && (severity.includes('Severe') || severity.includes('Moderate') || severity.includes('Mild'))) {
+                results.push({ category: label, severity: severity });
             }
         });
 
-        return results;
+        return { error: null, data: results };
     } catch (error) { 
-        console.error("Scrape Error:", error.response ? error.response.status : error.message);
-        return []; 
+        return { error: "Connection Failed", data: [] }; 
     }
 }
 
