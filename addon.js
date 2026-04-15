@@ -6,8 +6,6 @@ const builder = new addonBuilder(manifest);
 
 builder.defineStreamHandler(async (args) => {
     const imdbId = args.id.split(':')[0];
-    
-    // Stremio passes the config (API Key) here
     const apiKey = args.config ? args.config.apiKey : null;
 
     if (!apiKey) {
@@ -31,11 +29,22 @@ builder.defineStreamHandler(async (args) => {
         };
     }
 
+    if (data.length === 0) {
+        return {
+            streams: [{
+                name: "IMDb Guide",
+                title: "⚪ No advisory data found for this title.",
+                externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
+            }]
+        };
+    }
+
     const streams = data.map(item => {
         let icon = "⚪"; 
-        if (item.severity.includes("Severe")) icon = "🔴";
-        else if (item.severity.includes("Moderate")) icon = "🟡";
-        else if (item.severity.includes("Mild")) icon = "🟢";
+        if (item.severity === "Severe") icon = "🔴";
+        else if (item.severity === "Moderate") icon = "🟡";
+        else if (item.severity === "Mild") icon = "🟢";
+        else if (item.severity === "None") icon = "🔵";
 
         return {
             name: "IMDb Guide",
