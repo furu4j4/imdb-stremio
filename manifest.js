@@ -6,5 +6,6 @@ module.exports = {
     resources: ["stream"],
     types: ["movie", "series"],
     idPrefixes: ["tt"],
+    catalogs: [],
     logo: "https://www.imdb.com/favicon.ico"
 };
