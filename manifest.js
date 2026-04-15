@@ -8,7 +8,11 @@ module.exports = {
     idPrefixes: ["tt"],
     catalogs: [],
     logo: "https://www.imdb.com/favicon.ico",
-    // This defines the setup page
+    // THIS SECTION IS REQUIRED FOR THE KEY PROMPT TO SHOW UP
+    behaviorHints: {
+        configurable: true,
+        configurationRequired: true
+    },
     config: [
         {
             key: "apiKey",
