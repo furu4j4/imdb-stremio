@@ -1,15 +1,17 @@
 const express = require('express');
 const { getRouter } = require('stremio-addon-sdk');
-const path = require('path');
 const cors = require('cors');
-const addonInterface = require(path.join(__dirname, '..', 'addon.js'));
+const path = require('path');
+const addonInterface = require('../addon.js');
 
 const app = express();
 
-// Enable CORS for Stremio Web and other clients
+// Use standard CORS package for better compatibility
 app.use(cors());
 
 const router = getRouter(addonInterface);
+
+// This serves the manifest and the configuration landing page
 app.use('/', router);
 
 module.exports = app;
