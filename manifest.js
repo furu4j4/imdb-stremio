@@ -1,6 +1,6 @@
 module.exports = {
     id: "org.imdb.parentsguide.scraperapi",
-    version: "1.1.7", // Bump version to force Vercel to refresh
+    version: "1.1.8", // Bump version again
     name: "IMDb Parents Guide",
     description: "IMDb Parental Advisory via ScraperAPI",
     resources: ["stream"],
@@ -8,7 +8,7 @@ module.exports = {
     idPrefixes: ["tt"],
     catalogs: [], 
     logo: "https://www.imdb.com/favicon.ico",
-    // YOU MUST ADD THIS SECTION
+    // CRITICAL: This enables the /configure route
     behaviorHints: {
         configurable: true,
         configurationRequired: true
