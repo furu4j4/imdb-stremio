@@ -6,30 +6,33 @@ const builder = new addonBuilder(manifest);
 
 builder.defineStreamHandler(async ({ id }) => {
     const imdbId = id.split(':')[0];
-    const guideData = await getParentsGuide(imdbId);
+    const { error, data } = await getParentsGuide(imdbId);
     
-    // If the scraper found nothing, show a clear error message for debugging
-    if (guideData.length === 0) {
+    if (error) {
         return { 
             streams: [{
                 name: "IMDb Guide",
-                title: "⚠️ Could not pull data. Click to open IMDb.",
+                title: `⚠️ ${error} (Blocked by IMDb)`,
                 externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
             }]
         };
     }
 
-    // Sort so Severe is always at the top
-    const sortedData = guideData.sort((a, b) => {
-        const order = { "Severe": 1, "Moderate": 2, "Mild": 3 };
-        return (order[a.severity] || 9) - (order[b.severity] || 9);
-    });
+    if (data.length === 0) {
+        return { 
+            streams: [{
+                name: "IMDb Guide",
+                title: "ℹ️ No advisory data found on page.",
+                externalUrl: `https://www.imdb.com/title/${imdbId}/parentalguide`
+            }]
+        };
+    }
 
-    const streams = sortedData.map(item => {
+    const streams = data.map(item => {
         let icon = "⚪"; 
-        if (item.severity === "Severe") icon = "🔴";
-        else if (item.severity === "Moderate") icon = "🟡";
-        else if (item.severity === "Mild") icon = "🟢";
+        if (item.severity.includes("Severe")) icon = "🔴";
+        else if (item.severity.includes("Moderate")) icon = "🟡";
+        else if (item.severity.includes("Mild")) icon = "🟢";
 
         return {
             name: "IMDb Guide",
