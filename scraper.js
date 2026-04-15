@@ -6,44 +6,31 @@ async function getParentsGuide(imdbId) {
     try {
         const { data } = await axios.get(url, {
             headers: { 
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9'
             },
-            timeout: 8000
+            timeout: 10000
         });
         
         const $ = cheerio.load(data);
         const results = [];
 
-        // These IDs match the section anchors on IMDb's Parents Guide page
-        const categories = [
-            { id: 'advisory-nudity', label: 'Sex & Nudity' },
-            { id: 'advisory-violence', label: 'Violence & Gore' },
-            { id: 'advisory-profanity', label: 'Profanity' },
-            { id: 'advisory-alcohol', label: 'Alcohol & Drugs' },
-            { id: 'advisory-frightening', label: 'Frightening' }
-        ];
+        // Targets the new list items seen in your screenshot
+        $('.ipc-metadata-list-item--metadata').each((i, el) => {
+            const label = $(el).find('.ipc-metadata-list-item__label').text().trim();
+            const severity = $(el).find('.ipc-metadata-list-item__content-container').text().trim();
 
-        categories.forEach(cat => {
-            const section = $(`section#${cat.id}`);
-            
-            // This looks for the "Pill" or the status text (Severe, Moderate, Mild)
-            // It tries multiple common selectors used by IMDb
-            let severity = section.find('.ipl-status-pill, .advisory-severity-pill, [class*="status-pill"]')
-                .first()
-                .text()
-                .trim();
-
-            // Fallback: If the pill selector fails, search for the text directly in the section header
-            if (!severity) {
-                const headerText = section.find('h4').text().toLowerCase();
-                if (headerText.includes('severe')) severity = 'Severe';
-                else if (headerText.includes('moderate')) severity = 'Moderate';
-                else if (headerText.includes('mild')) severity = 'Mild';
-            }
-            
-            if (severity && severity.toLowerCase() !== "none") {
-                results.push({ category: cat.label, severity: severity });
+            // We only want the rows that actually have a severity rating
+            if (label && severity && (
+                severity.includes('Severe') || 
+                severity.includes('Moderate') || 
+                severity.includes('Mild') || 
+                severity.includes('None')
+            )) {
+                results.push({
+                    category: label,
+                    severity: severity
+                });
             }
         });
 
