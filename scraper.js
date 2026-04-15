@@ -6,7 +6,7 @@ async function getParentsGuide(imdbId) {
     try {
         const { data } = await axios.get(url, {
             headers: { 
-                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9'
             },
             timeout: 10000
@@ -15,28 +15,37 @@ async function getParentsGuide(imdbId) {
         const $ = cheerio.load(data);
         const results = [];
 
-        // Targets the new list items seen in your screenshot
-        $('.ipc-metadata-list-item--metadata').each((i, el) => {
-            const label = $(el).find('.ipc-metadata-list-item__label').text().trim();
-            const severity = $(el).find('.ipc-metadata-list-item__content-container').text().trim();
+        // Categories we are looking for
+        const targets = [
+            "Sex & Nudity",
+            "Violence & Gore",
+            "Profanity",
+            "Alcohol, Drugs & Smoking",
+            "Frightening & Intense Scenes"
+        ];
 
-            // We only want the rows that actually have a severity rating
-            if (label && severity && (
-                severity.includes('Severe') || 
-                severity.includes('Moderate') || 
-                severity.includes('Mild') || 
-                severity.includes('None')
-            )) {
-                results.push({
-                    category: label,
-                    severity: severity
-                });
-            }
+        // We search every list item and section for the text
+        $('li, section, div[class*="metadata-list-item"]').each((i, el) => {
+            const rowText = $(el).text();
+            
+            targets.forEach(category => {
+                if (rowText.includes(category)) {
+                    // Look for the severity keywords in the same block of text
+                    let severity = "None";
+                    if (rowText.includes("Severe")) severity = "Severe";
+                    else if (rowText.includes("Moderate")) severity = "Moderate";
+                    else if (rowText.includes("Mild")) severity = "Mild";
+
+                    // Prevent duplicates
+                    if (severity !== "None" && !results.some(r => r.category === category)) {
+                        results.push({ category, severity });
+                    }
+                }
+            });
         });
 
         return results;
     } catch (error) { 
-        console.error("Scrape failed:", error.message);
         return []; 
     }
 }
