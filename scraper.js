@@ -2,8 +2,6 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 async function getParentsGuide(imdbId, apiKey) {
-    if (!apiKey) return { error: "Missing ScraperAPI Key", data: [] };
-
     const targetUrl = `https://www.imdb.com/title/${imdbId}/parentalguide`;
     const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}`;
 
@@ -15,6 +13,7 @@ async function getParentsGuide(imdbId, apiKey) {
         $('.ipc-metadata-list-item').each((i, el) => {
             const label = $(el).find('.ipc-metadata-list-item__label').text().trim();
             const severity = $(el).find('.ipc-metadata-list-item__content-container').text().trim();
+
             if (label && severity && (severity.includes('Severe') || severity.includes('Moderate') || severity.includes('Mild'))) {
                 results.push({ category: label, severity: severity });
             }
@@ -22,7 +21,7 @@ async function getParentsGuide(imdbId, apiKey) {
 
         return { error: null, data: results };
     } catch (error) { 
-        return { error: "ScraperAPI Failed", data: [] }; 
+        return { error: "ScraperAPI error or invalid key", data: [] }; 
     }
 }
 
