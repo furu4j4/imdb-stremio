@@ -1,17 +1,15 @@
 const express = require('express');
 const { getRouter } = require('stremio-addon-sdk');
-const path = require('path');
-const addonInterface = require('../addon.js');
+const addonInterface = require('../addon.js'); // Simplified path for Vercel
 
 const app = express();
 
-// Use the SDK's built-in router
+// The SDK's getRouter handles /configure and /manifest.json automatically
 const router = getRouter(addonInterface);
 
-// Handle the root and all sub-paths
 app.use('/', router);
 
-// Explicit fallback: if /configure is missed, try to force it
+// Explicitly handle the root redirect
 app.get('/', (req, res) => {
     res.redirect('/configure');
 });
